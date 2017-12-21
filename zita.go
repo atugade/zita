@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/nlopes/slack"
+	"github.com/davecgh/go-spew/spew"
 )
 
 func event_loop(rtm *slack.RTM) {
@@ -14,7 +15,8 @@ EventLoop:
 	for {
 		select {
 		case msg := <-rtm.IncomingEvents:
-			fmt.Print("Event Received: ")
+			//fmt.Println("Event Received: ", msg)
+                        spew.Dump(msg)
 			switch ev := msg.Data.(type) {
 			case *slack.ConnectedEvent:
 				fmt.Println("Connection counter:", ev.ConnectionCount)
@@ -52,12 +54,19 @@ EventLoop:
 
 }
 
-func main() {
+func slack_init() *slack.RTM {
 
 	token := os.Getenv("SLACK_TOKEN")
 	api := slack.New(token)
 	rtm := api.NewRTM()
 	go rtm.ManageConnection()
 
+	return rtm
+
+}
+
+func main() {
+
+	rtm := slack_init()
 	event_loop(rtm)
 }
