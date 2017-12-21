@@ -4,9 +4,10 @@ import (
 	"fmt"
 	"os"
 	"strings"
+        "./utils"
 
 	"github.com/nlopes/slack"
-	"github.com/davecgh/go-spew/spew"
+	//"github.com/davecgh/go-spew/spew"
 )
 
 func event_loop(rtm *slack.RTM) {
@@ -15,14 +16,16 @@ EventLoop:
 	for {
 		select {
 		case msg := <-rtm.IncomingEvents:
-			//fmt.Println("Event Received: ", msg)
-                        spew.Dump(msg)
+			fmt.Println("Event Received: ", msg)
+			utils.Log.Println("Event Received: ", msg)
+                        //spew.Dump(msg)
 			switch ev := msg.Data.(type) {
 			case *slack.ConnectedEvent:
 				fmt.Println("Connection counter:", ev.ConnectionCount)
 
 			case *slack.MessageEvent:
 				fmt.Printf("Message: %v\n", ev)
+				utils.Log.Println("Message: ", ev)
 				info := rtm.GetInfo()
 				prefix := fmt.Sprintf("<@%s> ", info.User.ID)
 				//user, _ := rtm.GetUserInfo(ev.User)
@@ -67,6 +70,8 @@ func slack_init() *slack.RTM {
 
 func main() {
 
+        logpath := "zita.log"
+        utils.NewLog(logpath)
 	rtm := slack_init()
 	event_loop(rtm)
 }
