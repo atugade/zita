@@ -1,77 +1,63 @@
 package main
 
 import (
-	"fmt"
 	"os"
-	"strings"
-        "./utils"
+	"log"
 
 	"github.com/nlopes/slack"
-	//"github.com/davecgh/go-spew/spew"
+	"gopkg.in/alecthomas/kingpin.v2"
 )
 
-func event_loop(rtm *slack.RTM) {
+var (
+	Log *log.Logger
 
-EventLoop:
-	for {
-		select {
-		case msg := <-rtm.IncomingEvents:
-			fmt.Println("Event Received: ", msg)
-			utils.Log.Println("Event Received: ", msg)
-                        //spew.Dump(msg)
-			switch ev := msg.Data.(type) {
-			case *slack.ConnectedEvent:
-				fmt.Println("Connection counter:", ev.ConnectionCount)
+	debug = kingpin.Flag("debug", "Enable debug mode.").Bool()
+)
 
-			case *slack.MessageEvent:
-				fmt.Printf("Message: %v\n", ev)
-				utils.Log.Println("Message: ", ev)
-				info := rtm.GetInfo()
-				prefix := fmt.Sprintf("<@%s> ", info.User.ID)
-				//user, _ := rtm.GetUserInfo(ev.User)
-
-				if ev.User != info.User.ID && strings.HasPrefix(ev.Text, prefix) {
-					//reply := fmt.Sprintf("What's up %s!?!?", user.Name)
-					//rtm.SendMessage(rtm.NewOutgoingMessage(reply, ev.Channel))
-
-					// this is how you send a user a private message
-					params := slack.PostMessageParameters{
-						Text:     "Testing",
-						Username: ev.User,
-						AsUser:   true}
-					rtm.PostMessage(ev.User, "testing", params)
-				}
-
-			case *slack.RTMError:
-				fmt.Printf("Error: %s\n", ev.Error())
-
-			case *slack.InvalidAuthEvent:
-				fmt.Printf("Invalid credentials")
-				break EventLoop
-
-			default:
-				//Take no action
-			}
-		}
-	}
-
+func get_slack_token() string {
+	return os.Getenv("SLACK_TOKEN")
 }
 
-func slack_init() *slack.RTM {
+func slack_client_init(token string) *slack.Client {
+	return slack.New(token)
+}
 
-	token := os.Getenv("SLACK_TOKEN")
-	api := slack.New(token)
-	rtm := api.NewRTM()
+func slack_init(client *slack.Client) *slack.RTM {
+
+	rtm := client.NewRTM()
 	go rtm.ManageConnection()
 
 	return rtm
 
 }
 
+func log_init(logpath string) {
+        println("LogFile: " + logpath)
+        file, err := os.Create(logpath)
+
+        if err != nil {
+                panic(err)
+        }
+
+        Log = log.New(file, "zita: ", log.Lshortfile|log.LstdFlags)
+}
+
 func main() {
 
-        logpath := "zita.log"
-        utils.NewLog(logpath)
-	rtm := slack_init()
+	kingpin.Version("0.0.1")
+	kingpin.Parse()
+
+	log_init("zita.log")
+	slack.SetLogger(Log)
+
+	token := get_slack_token()
+	client := slack_client_init(token)
+
+	if *debug {
+		client.SetDebug(true)
+	}
+
+	rtm := slack_init(client)
+
 	event_loop(rtm)
 }
