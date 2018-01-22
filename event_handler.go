@@ -49,19 +49,32 @@ EventLoop:
 
 func process_message_event(rtm *slack.RTM, ev *slack.MessageEvent) {
 	fmt.Printf("Message: %v\n", ev)
-	info := rtm.GetInfo()
-	prefix := fmt.Sprintf("<@%s> ", info.User.ID)
-	//user, _ := rtm.GetUserInfo(ev.User)
+	a := strings.Split(ev.Text, " ")
+        a = append(a[:0], a[0+1:]...)
+	spew.Dump(a)
 
-	if ev.User != info.User.ID && strings.HasPrefix(ev.Text, prefix) {
-		//reply := fmt.Sprintf("What's up %s!?!?", user.Name)
-		//rtm.SendMessage(rtm.NewOutgoingMessage(reply, ev.Channel))
+	plug := load_plugin("plugins/jenkins.so")
 
-		// this is how you send a user a private message
-		params := slack.PostMessageParameters{
-			Text:     "Testing",
-			Username: ev.User,
-			AsUser:   true}
-		rtm.PostMessage(ev.User, "testing", params)
-	}
+	spew.Dump(plug)
+
+	symCommand := get_symbol(plug)
+	symCommand.(func(string))(ev.Text)
+
+	spew.Dump(symCommand)
+
+//	info := rtm.GetInfo()
+//	prefix := fmt.Sprintf("<@%s> ", info.User.ID)
+//	//user, _ := rtm.GetUserInfo(ev.User)
+
+//	if ev.User != info.User.ID && strings.HasPrefix(ev.Text, prefix) {
+//		//reply := fmt.Sprintf("What's up %s!?!?", user.Name)
+//		//rtm.SendMessage(rtm.NewOutgoingMessage(reply, ev.Channel))
+
+//		// this is how you send a user a private message
+//		params := slack.PostMessageParameters{
+//			Text:     "Testing",
+//			Username: ev.User,
+//			AsUser:   true}
+//		rtm.PostMessage(ev.User, "testing", params)
+//	}
 }
