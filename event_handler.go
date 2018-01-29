@@ -1,6 +1,7 @@
 package main
 
 import (
+	"os"
 	"fmt"
 	//"strings"
 
@@ -30,7 +31,7 @@ EventLoop:
 				fmt.Println("Connection counter:", ev.ConnectionCount)
 
 			case *slack.MessageEvent:
-				process_message_event(rtm, ev)
+				go process_message_event(rtm, ev)
 
 			case *slack.RTMError:
 				fmt.Printf("Error: %s\n", ev.Error())
@@ -53,28 +54,34 @@ EventLoop:
 
 func process_message_event(rtm *slack.RTM, ev *slack.MessageEvent) {
 	fmt.Printf("Message: %v\n", ev)
+        spew.Dump(ev)
 
 	a := string_to_list(ev.Text)
-	a = pop_list(a)
-	spew.Dump(a)
+	// pops the userid the message was addressed to
+	a, _ = pop_list(a)
+	// pops the subcommand name
+	a, subcommand := pop_list(a)
 
-	plug := load_plugin("plugins/jenkins.so")
+	plugpath := get_plugin_path(subcommand)
 
-	spew.Dump(plug)
+	if _, err := os.Stat(plugpath); err == nil {
+		plug, _ := load_plugin(plugpath)
+		spew.Dump(plug)
 
-	symCommand := get_symbol(plug)
-	//symCommand.(func(string))(ev.Text)
-	spew.Dump(symCommand)
+		symCommand := get_symbol(plug)
+		//symCommand.(func(string))(ev.Text)
+		spew.Dump(symCommand)
 
-	command, ok := symCommand.(Command)
+		command, ok := symCommand.(Command)
 
-	if !ok {
-		fmt.Println("unexpected type from module symbol")
+		if !ok {
+			fmt.Println("unexpected type from module symbol")
+		}
+
+		spew.Dump(command)
+
+		command.Command(a)
 	}
-
-	spew.Dump(command)
-
-	command.Command(a)
 
 	//	info := rtm.GetInfo()
 	//	prefix := fmt.Sprintf("<@%s> ", info.User.ID)
