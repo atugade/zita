@@ -1,8 +1,8 @@
 package main
 
 import (
-	"os"
 	"log"
+	"os"
 
 	"github.com/nlopes/slack"
 	"gopkg.in/alecthomas/kingpin.v2"
@@ -32,14 +32,14 @@ func slack_init(client *slack.Client) *slack.RTM {
 }
 
 func log_init(logpath string) {
-        println("LogFile: " + logpath)
-        file, err := os.Create(logpath)
+	println("LogFile: " + logpath)
+	file, err := os.Create(logpath)
 
-        if err != nil {
-                panic(err)
-        }
+	if err != nil {
+		panic(err)
+	}
 
-        Log = log.New(file, "zita: ", log.Lshortfile|log.LstdFlags)
+	Log = log.New(file, "zita: ", log.Lshortfile|log.LstdFlags)
 }
 
 func main() {

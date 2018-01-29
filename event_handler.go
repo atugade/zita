@@ -2,11 +2,15 @@ package main
 
 import (
 	"fmt"
-	"strings"
+	//"strings"
 
 	"github.com/davecgh/go-spew/spew"
 	"github.com/nlopes/slack"
 )
+
+type Command interface {
+	Command([]string)
+}
 
 func event_loop(rtm *slack.RTM) {
 
@@ -49,8 +53,9 @@ EventLoop:
 
 func process_message_event(rtm *slack.RTM, ev *slack.MessageEvent) {
 	fmt.Printf("Message: %v\n", ev)
-	a := strings.Split(ev.Text, " ")
-        a = append(a[:0], a[0+1:]...)
+
+	a := string_to_list(ev.Text)
+	a = pop_list(a)
 	spew.Dump(a)
 
 	plug := load_plugin("plugins/jenkins.so")
@@ -58,23 +63,32 @@ func process_message_event(rtm *slack.RTM, ev *slack.MessageEvent) {
 	spew.Dump(plug)
 
 	symCommand := get_symbol(plug)
-	symCommand.(func(string))(ev.Text)
-
+	//symCommand.(func(string))(ev.Text)
 	spew.Dump(symCommand)
 
-//	info := rtm.GetInfo()
-//	prefix := fmt.Sprintf("<@%s> ", info.User.ID)
-//	//user, _ := rtm.GetUserInfo(ev.User)
+	command, ok := symCommand.(Command)
 
-//	if ev.User != info.User.ID && strings.HasPrefix(ev.Text, prefix) {
-//		//reply := fmt.Sprintf("What's up %s!?!?", user.Name)
-//		//rtm.SendMessage(rtm.NewOutgoingMessage(reply, ev.Channel))
+	if !ok {
+		fmt.Println("unexpected type from module symbol")
+	}
 
-//		// this is how you send a user a private message
-//		params := slack.PostMessageParameters{
-//			Text:     "Testing",
-//			Username: ev.User,
-//			AsUser:   true}
-//		rtm.PostMessage(ev.User, "testing", params)
-//	}
+	spew.Dump(command)
+
+	command.Command(a)
+
+	//	info := rtm.GetInfo()
+	//	prefix := fmt.Sprintf("<@%s> ", info.User.ID)
+	//	//user, _ := rtm.GetUserInfo(ev.User)
+
+	//	if ev.User != info.User.ID && strings.HasPrefix(ev.Text, prefix) {
+	//		//reply := fmt.Sprintf("What's up %s!?!?", user.Name)
+	//		//rtm.SendMessage(rtm.NewOutgoingMessage(reply, ev.Channel))
+
+	//		// this is how you send a user a private message
+	//		params := slack.PostMessageParameters{
+	//			Text:     "Testing",
+	//			Username: ev.User,
+	//			AsUser:   true}
+	//		rtm.PostMessage(ev.User, "testing", params)
+	//	}
 }

@@ -1,24 +1,24 @@
 package main
 
 import (
-       "os"
-       "fmt"
-       "plugin"
+	"fmt"
+	"os"
+	"plugin"
 )
 
 type Subcommand interface {
-       Command(s string)
+	Command(s string)
 }
 
 func load_plugin(p string) *plugin.Plugin {
-       plug, err := plugin.Open(p)
+	plug, err := plugin.Open(p)
 
-       if err != nil {
-               fmt.Println(err)
-               os.Exit(1)
-       }
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
 
-       return plug
+	return plug
 }
 
 func get_symbol(plug *plugin.Plugin) plugin.Symbol {
