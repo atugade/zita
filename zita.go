@@ -47,6 +47,7 @@ func main() {
 	kingpin.Version("0.0.1")
 	kingpin.Parse()
 
+	config, _ := load_config("config.toml")
 	log_init("zita.log")
 	slack.SetLogger(Log)
 
@@ -59,5 +60,5 @@ func main() {
 
 	rtm := slack_init(client)
 
-	event_loop(rtm)
+	event_loop(rtm, config)
 }

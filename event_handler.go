@@ -1,8 +1,8 @@
 package main
 
 import (
-	"os"
 	"fmt"
+	"os"
 	//"strings"
 
 	"github.com/davecgh/go-spew/spew"
@@ -13,7 +13,7 @@ type Command interface {
 	Command([]string)
 }
 
-func event_loop(rtm *slack.RTM) {
+func event_loop(rtm *slack.RTM, config *tomlConfig) {
 
 EventLoop:
 	for {
@@ -31,7 +31,7 @@ EventLoop:
 				fmt.Println("Connection counter:", ev.ConnectionCount)
 
 			case *slack.MessageEvent:
-				go process_message_event(rtm, ev)
+				go process_message_event(rtm, ev, config)
 
 			case *slack.RTMError:
 				fmt.Printf("Error: %s\n", ev.Error())
@@ -52,13 +52,15 @@ EventLoop:
 
 }
 
-func process_message_event(rtm *slack.RTM, ev *slack.MessageEvent) {
+func process_message_event(rtm *slack.RTM, ev *slack.MessageEvent, config *tomlConfig) {
 	fmt.Printf("Message: %v\n", ev)
-        spew.Dump(ev)
+	spew.Dump(ev)
 
 	a := string_to_list(ev.Text)
+
 	// pops the userid the message was addressed to
 	a, _ = pop_list(a)
+
 	// pops the subcommand name
 	a, subcommand := pop_list(a)
 
