@@ -48,3 +48,7 @@ func load_config(confpath string) (*tomlConfig, error) {
 	spew.Dump(config)
 	return &config, nil
 }
+
+func is_authorized(username string, config *tomlConfig) bool{
+	return false
+}

@@ -4,5 +4,5 @@
 logpath = "zita.log"
 
 [access]
-users = [ "bungnasty", "lilshit" ]
-admins = [ "assfunk", "assmonger" ]
+users = [ "roxone" ]
+admins = [ "djrone" ]

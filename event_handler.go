@@ -52,7 +52,11 @@ EventLoop:
 
 }
 
-func process_message_event(rtm *slack.RTM, ev *slack.MessageEvent, config *tomlConfig) {
+func process_message_event(rtm *slack.RTM, ev *slack.MessageEvent, config *tomlConfig) int{
+	if !is_authorized(ev.User, config) {
+		return 1
+	}
+
 	fmt.Printf("Message: %v\n", ev)
 	spew.Dump(ev)
 
@@ -84,6 +88,8 @@ func process_message_event(rtm *slack.RTM, ev *slack.MessageEvent, config *tomlC
 
 		command.Command(a)
 	}
+
+	return 0
 
 	//	info := rtm.GetInfo()
 	//	prefix := fmt.Sprintf("<@%s> ", info.User.ID)
